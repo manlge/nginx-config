@@ -42,6 +42,19 @@ pub struct Events {
     pub position: (Pos, Pos),
     pub directives: Vec<Directive>,
 }
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Upstream {
+    pub position: (Pos, Pos),
+    pub name: String,
+    pub directives: Vec<Directive>,
+}
+
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UpstreamServer {
+    pub host: String,
+    pub options: Option<Vec<String>>,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Server {
@@ -347,6 +360,8 @@ pub enum ErrorLevel {
 pub enum Item {
     User(Value),
     Use(Value),
+    Upstream(Upstream),
+    UpstreamServer(UpstreamServer),
     Daemon(bool),
     MasterProcess(bool),
     MultiAccept(bool),
@@ -448,6 +463,8 @@ impl Item {
             Http(..) => "http",
             Events(..) => "events",
             Server(..) => "server",
+            Upstream(..) => "upstream",
+            UpstreamServer(..) => "server",
             Location(..) => "location",
             LimitExcept(..) => "limit_except",
             Listen(..) => "listen",
@@ -539,6 +556,8 @@ impl Item {
             Http(ref h) => Some(&h.directives[..]),
             Events(ref e) => Some(&e.directives[..]),
             Server(ref s) => Some(&s.directives[..]),
+            Upstream(ref s) => Some(&s.directives[..]),
+            UpstreamServer(ref s) => None,
             Location(ref l) => Some(&l.directives[..]),
             LimitExcept(ref l) => Some(&l.directives[..]),
             Listen(_) => None,
@@ -630,6 +649,8 @@ impl Item {
             Http(ref mut h) => Some(&mut h.directives),
             Events(ref mut e) => Some(&mut e.directives),
             Server(ref mut s) => Some(&mut s.directives),
+            Upstream(ref mut s) => Some(&mut s.directives),
+            UpstreamServer(ref mut s) => None,
             Location(ref mut l) => Some(&mut l.directives),
             LimitExcept(ref mut l) => Some(&mut l.directives),
             Listen(_) => None,
@@ -731,6 +752,8 @@ impl Item {
             Http(_) => {},
             Events(_) => {},
             Server(_) => {},
+            Upstream(_) => {},
+            UpstreamServer(_) => {},
             Location(_) => {},
             LimitExcept(_) => {},
             Listen(_) => {},

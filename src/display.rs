@@ -89,6 +89,21 @@ impl Displayable for ast::Item {
             Server(ref s) => {
                 simple_block(f, "server", &s.directives);
             }
+            Upstream(ref s) => {
+                simple_block(f, format_args!("upstream {}", s.name), &s.directives);
+            }
+            UpstreamServer(ref s) =>{
+                f.indent();
+                f.write("server ");
+                f.write(&s.host);
+                if let Some(items) = s.options.as_ref() {
+                    for item in items {
+                        f.write(" ");
+                        f.write(item);
+                    }
+                }
+                f.end();
+            }
             Location(ast::Location { ref pattern, ref directives, .. }) => {
                 simple_block(f,
                     format_args!("location {}", pattern),
