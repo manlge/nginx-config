@@ -20,8 +20,7 @@ use rewrite;
 use log;
 use real_ip;
 
-use crate::ast::UpstreamServer;
-
+use crate::ast::{LogFormat, UpstreamServer};
 
 pub enum Code {
     Redirect(u32),
@@ -316,7 +315,7 @@ pub fn top_level<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
             block().map(|(position, directives)| ast::Server { position, directives })
                 .map(Item::Server),
                 string().and(optional(many::<Vec<_>, _>(
-                        (position(), string()).and_then(|(_, s)| {
+                        (position(), string()).and_then(|(pos, s)| {
                             if true{
                                 Ok(s.to_string())
                             } else{
@@ -327,6 +326,16 @@ pub fn top_level<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
                         }))
                 )).skip(semi()).map(|(s, opts)|UpstreamServer { host: s.to_string(), options: opts.map(|x|x) }).map(Item::UpstreamServer),
         ))),
+        ident("log_format").with(raw()).and(many::<Vec<_>, _>(
+            (position(), string()).and_then(|(pos, s)| {
+                if true{
+                    Ok(s.to_string())
+                } else{
+                    Err(Error::unexpected_message(
+                        format!("bad param {:?}", s.value)))
+                }
+
+            }))).skip(semi()).map(|s|LogFormat { name: s.0, style: s.1 }).map(Item::LogFormat),
         ident("stream").with(block()).map(|(position, directives)| ast::Stream { position, directives }).map(Item::Stream),
         ident("client_max_body_size").with(value()).skip(semi())
             .map(Item::ClientMaxBodySize),

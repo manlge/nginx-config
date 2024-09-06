@@ -107,6 +107,23 @@ impl Displayable for ast::Item {
                 }
                 f.end();
             }
+            LogFormat(ref l) => {
+                f.indent();
+                f.write("log_format ");
+                f.write(&l.name);
+                f.write(" ");
+                f.write(&l.style[0]);
+
+                let n_spaces = 12 + l.name.len();
+
+                for s in l.style.iter().skip(1) {
+                    f.endline();
+                    f.indent();
+                    for _ in 0..n_spaces{ f.write(" ")};
+                    f.write(s);
+                }
+                f.end();
+            }
             Location(ast::Location { ref pattern, ref directives, .. }) => {
                 simple_block(f,
                     format_args!("location {}", pattern),

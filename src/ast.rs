@@ -47,6 +47,11 @@ pub struct Stream {
     pub position: (Pos, Pos),
     pub directives: Vec<Directive>,
 }
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LogFormat {
+    pub name: String,
+    pub style: Vec<String>,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Upstream {
@@ -55,12 +60,12 @@ pub struct Upstream {
     pub directives: Vec<Directive>,
 }
 
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UpstreamServer {
     pub host: String,
     pub options: Option<Vec<String>>,
 }
+
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Server {
@@ -369,6 +374,7 @@ pub enum Item {
     Stream(Stream),
     Upstream(Upstream),
     UpstreamServer(UpstreamServer),
+    LogFormat(LogFormat),
     Daemon(bool),
     MasterProcess(bool),
     MultiAccept(bool),
@@ -473,6 +479,7 @@ impl Item {
             Stream(..) => "stream",
             Upstream(..) => "upstream",
             UpstreamServer(..) => "server",
+            LogFormat(..) => "log_format",
             Location(..) => "location",
             LimitExcept(..) => "limit_except",
             Listen(..) => "listen",
@@ -566,7 +573,8 @@ impl Item {
             Server(ref s) => Some(&s.directives[..]),
             Stream(ref s) => Some(&s.directives[..]),
             Upstream(ref s) => Some(&s.directives[..]),
-            UpstreamServer(ref s) => None,
+            UpstreamServer(_) => None,
+            LogFormat(..) => None,
             Location(ref l) => Some(&l.directives[..]),
             LimitExcept(ref l) => Some(&l.directives[..]),
             Listen(_) => None,
@@ -660,7 +668,8 @@ impl Item {
             Server(ref mut s) => Some(&mut s.directives),
             Stream(ref mut s) => Some(&mut s.directives),
             Upstream(ref mut s) => Some(&mut s.directives),
-            UpstreamServer(ref mut s) => None,
+            UpstreamServer(_) => None,
+            LogFormat(_) => None,
             Location(ref mut l) => Some(&mut l.directives),
             LimitExcept(ref mut l) => Some(&mut l.directives),
             Listen(_) => None,
@@ -765,6 +774,7 @@ impl Item {
             Stream(_) => {},
             Upstream(_) => {},
             UpstreamServer(_) => {},
+            LogFormat(_) => {},
             Location(_) => {},
             LimitExcept(_) => {},
             Listen(_) => {},
