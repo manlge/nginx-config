@@ -209,7 +209,7 @@ pub fn location<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
     })
 }
 pub fn upstream<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
-    ident("upstream").with(string().map(|s|s.to_string())).and(block())
+    ident("upstream").with(raw()).and(block())
         .map(|(name, (position, directives))| ast::Upstream { position, name, directives })
         .map(Item::Upstream)
 }
@@ -312,9 +312,6 @@ pub fn top_level<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
         ident("events").with(block())
             .map(|(position, directives)| ast::Events { position, directives })
             .map(Item::Events),
-        // ident("server").with(block())
-        //     .map(|(position, directives)| ast::Server { position, directives })
-        //     .map(Item::Server),
         ident("server").with(choice((
             block().map(|(position, directives)| ast::Server { position, directives })
                 .map(Item::Server),
@@ -324,12 +321,13 @@ pub fn top_level<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
                                 Ok(s.to_string())
                             } else{
                                 Err(Error::unexpected_message(
-                                    format!("bad  param {:?}", s.value)))
+                                    format!("bad param {:?}", s.value)))
                             }
 
                         }))
                 )).skip(semi()).map(|(s, opts)|UpstreamServer { host: s.to_string(), options: opts.map(|x|x) }).map(Item::UpstreamServer),
         ))),
+        ident("stream").with(block()).map(|(position, directives)| ast::Stream { position, directives }).map(Item::Stream),
         ident("client_max_body_size").with(value()).skip(semi())
             .map(Item::ClientMaxBodySize),
         ident("empty_gif").skip(semi()).map(|_| Item::EmptyGif),

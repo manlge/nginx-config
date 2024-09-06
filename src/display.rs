@@ -89,6 +89,9 @@ impl Displayable for ast::Item {
             Server(ref s) => {
                 simple_block(f, "server", &s.directives);
             }
+            Stream(ref s) => {
+                simple_block(f, "stream", &s.directives);
+            }
             Upstream(ref s) => {
                 simple_block(f, format_args!("upstream {}", s.name), &s.directives);
             }

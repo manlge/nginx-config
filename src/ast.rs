@@ -43,6 +43,12 @@ pub struct Events {
     pub directives: Vec<Directive>,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Stream {
+    pub position: (Pos, Pos),
+    pub directives: Vec<Directive>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Upstream {
     pub position: (Pos, Pos),
     pub name: String,
@@ -360,6 +366,7 @@ pub enum ErrorLevel {
 pub enum Item {
     User(Value),
     Use(Value),
+    Stream(Stream),
     Upstream(Upstream),
     UpstreamServer(UpstreamServer),
     Daemon(bool),
@@ -463,6 +470,7 @@ impl Item {
             Http(..) => "http",
             Events(..) => "events",
             Server(..) => "server",
+            Stream(..) => "stream",
             Upstream(..) => "upstream",
             UpstreamServer(..) => "server",
             Location(..) => "location",
@@ -556,6 +564,7 @@ impl Item {
             Http(ref h) => Some(&h.directives[..]),
             Events(ref e) => Some(&e.directives[..]),
             Server(ref s) => Some(&s.directives[..]),
+            Stream(ref s) => Some(&s.directives[..]),
             Upstream(ref s) => Some(&s.directives[..]),
             UpstreamServer(ref s) => None,
             Location(ref l) => Some(&l.directives[..]),
@@ -649,6 +658,7 @@ impl Item {
             Http(ref mut h) => Some(&mut h.directives),
             Events(ref mut e) => Some(&mut e.directives),
             Server(ref mut s) => Some(&mut s.directives),
+            Stream(ref mut s) => Some(&mut s.directives),
             Upstream(ref mut s) => Some(&mut s.directives),
             UpstreamServer(ref mut s) => None,
             Location(ref mut l) => Some(&mut l.directives),
@@ -752,6 +762,7 @@ impl Item {
             Http(_) => {},
             Events(_) => {},
             Server(_) => {},
+            Stream(_) => {},
             Upstream(_) => {},
             UpstreamServer(_) => {},
             Location(_) => {},
