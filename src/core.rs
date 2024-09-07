@@ -79,6 +79,7 @@ fn error_page<'a>()
 
 enum ListenParts {
     DefaultServer,
+    Default,
     Ssl,
     Ext(ast::HttpExt),
     ProxyProtocol,
@@ -113,6 +114,7 @@ fn listen<'a>()
     }))
     .and(many::<Vec<_>, _>(choice((
         ident("default_server").map(|_| DefaultServer),
+        ident("default").map(|_| Default),
         ident("ssl").map(|_| Ssl),
         ident("http2").map(|_| Ext(HttpExt::Http2)),
         ident("spdy").map(|_| Ext(HttpExt::Spdy)),
@@ -135,6 +137,7 @@ fn listen<'a>()
         let mut lst = Listen::new(addr);
         for item in items {
             match item {
+                Default => lst.default = true,
                 DefaultServer => lst.default_server = true,
                 Ssl => lst.ssl = true,
                 Ext(ext) => lst.ext = Some(ext),

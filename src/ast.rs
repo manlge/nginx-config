@@ -54,6 +54,11 @@ pub struct LogFormat {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SimpleOption {
+    pub name: &'static str,
+    pub values: Vec<String>,
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Upstream {
     pub position: (Pos, Pos),
     pub name: String,
@@ -65,7 +70,6 @@ pub struct UpstreamServer {
     pub host: String,
     pub options: Option<Vec<String>>,
 }
-
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Server {
@@ -115,6 +119,7 @@ pub enum HttpExt {
 pub struct Listen {
     pub address: Address,
     pub default_server: bool,
+    pub default: bool, // nginx version < 0.8.21
     pub ssl: bool,
     pub ext: Option<HttpExt>,
     pub proxy_protocol: bool,
@@ -138,6 +143,7 @@ impl Listen {
         Listen {
             address,
             default_server: false,
+            default: false,
             ssl: false,
             ext: None,
             proxy_protocol: false,
@@ -375,6 +381,7 @@ pub enum Item {
     Upstream(Upstream),
     UpstreamServer(UpstreamServer),
     LogFormat(LogFormat),
+    SimpleOption(SimpleOption),
     Daemon(bool),
     MasterProcess(bool),
     MultiAccept(bool),
@@ -462,7 +469,7 @@ pub enum Item {
 
 impl Item {
 
-    pub fn directive_name(&self) -> &'static str {
+    pub fn directive_name(&self) -> &str {
         use self::Item::*;
         match *self {
             User(..) => "user",
@@ -480,6 +487,7 @@ impl Item {
             Upstream(..) => "upstream",
             UpstreamServer(..) => "server",
             LogFormat(..) => "log_format",
+            SimpleOption(ref f) => &f.name,
             Location(..) => "location",
             LimitExcept(..) => "limit_except",
             Listen(..) => "listen",
@@ -574,7 +582,8 @@ impl Item {
             Stream(ref s) => Some(&s.directives[..]),
             Upstream(ref s) => Some(&s.directives[..]),
             UpstreamServer(_) => None,
-            LogFormat(..) => None,
+            LogFormat(_) => None,
+            SimpleOption(_) => None,
             Location(ref l) => Some(&l.directives[..]),
             LimitExcept(ref l) => Some(&l.directives[..]),
             Listen(_) => None,
@@ -670,6 +679,7 @@ impl Item {
             Upstream(ref mut s) => Some(&mut s.directives),
             UpstreamServer(_) => None,
             LogFormat(_) => None,
+            SimpleOption(_) => None,
             Location(ref mut l) => Some(&mut l.directives),
             LimitExcept(ref mut l) => Some(&mut l.directives),
             Listen(_) => None,
@@ -775,6 +785,7 @@ impl Item {
             Upstream(_) => {},
             UpstreamServer(_) => {},
             LogFormat(_) => {},
+            SimpleOption(_) => {},
             Location(_) => {},
             LimitExcept(_) => {},
             Listen(_) => {},

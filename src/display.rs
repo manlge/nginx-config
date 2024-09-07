@@ -124,6 +124,16 @@ impl Displayable for ast::Item {
                 }
                 f.end();
             }
+            SimpleOption(ref o) => {
+                f.indent();
+                f.write(&o.name);
+
+                for s in o.values.iter() {
+                    f.write(" ");
+                    f.write(s);
+                }
+                f.end();
+            }
             Location(ast::Location { ref pattern, ref directives, .. }) => {
                 simple_block(f,
                     format_args!("location {}", pattern),
@@ -653,6 +663,7 @@ impl Displayable for ast::Listen {
         f.write("listen ");
         self.address.display(f);
         if self.default_server { f.write(" default_server") }
+        if self.default { f.write(" default") }
         if self.ssl { f.write(" ssl") }
         match self.ext {
             Some(ast::HttpExt::Http2) => f.write(" http2"),

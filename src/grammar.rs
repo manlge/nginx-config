@@ -20,7 +20,7 @@ use rewrite;
 use log;
 use real_ip;
 
-use crate::ast::{LogFormat, UpstreamServer};
+use crate::ast::{LogFormat, SimpleOption, UpstreamServer};
 
 pub enum Code {
     Redirect(u32),
@@ -290,6 +290,48 @@ pub fn openresty<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
     ))
 }
 
+
+pub fn proxy_opts<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
+    choice((
+        simple_option("proxy_headers_hash_max_size"),
+        simple_option("proxy_headers_hash_bucket_size"),
+        simple_option("proxy_send_timeout"),
+        simple_option("proxy_buffer_size"),
+        simple_option("proxy_buffers"),
+        simple_option("proxy_busy_buffers_size"),
+        simple_option("proxy_temp_file_write_size"),
+        simple_option("proxy_temp_path"),
+        simple_option("proxy_cache_bypass"),
+        simple_option("proxy_ignore_client_abort"),
+    ))
+}
+
+
+pub fn simple_opts<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
+    choice((
+        simple_option("sendfile_max_chunk"),
+        simple_option("tcp_nodelay"),
+        simple_option("variables_hash_bucket_size"),
+        simple_option("underscores_in_headers"),
+        simple_option("client_body_buffer_size"),
+        simple_option("vhost_traffic_status_zone"),
+        simple_option("vhost_traffic_status_filter_by_host"),
+        simple_option("gzip_min_length"),
+        simple_option("gzip_buffers"),
+        simple_option("gzip_http_version"),
+        simple_option("gzip_comp_level"),
+        simple_option("gzip_types"),
+        simple_option("gzip_vary"),
+        simple_option("lua_code_cache"),
+        simple_option("vhost_traffic_status_display_format"),
+        simple_option("worker_rlimit_nofile"),
+        simple_option("env"),
+        simple_option("accept_mutex"),
+        simple_option("stub_status"),
+        simple_option("vhost_traffic_status_display"),
+        simple_option("check_status"),
+    ))
+}
 pub fn top_level<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
     choice((
         worker_connections(),
@@ -315,7 +357,7 @@ pub fn top_level<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
             block().map(|(position, directives)| ast::Server { position, directives })
                 .map(Item::Server),
                 string().and(optional(many::<Vec<_>, _>(
-                        (position(), string()).and_then(|(pos, s)| {
+                        (position(), string()).and_then(|(_, s)| {
                             if true{
                                 Ok(s.to_string())
                             } else{
@@ -327,7 +369,7 @@ pub fn top_level<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
                 )).skip(semi()).map(|(s, opts)|UpstreamServer { host: s.to_string(), options: opts.map(|x|x) }).map(Item::UpstreamServer),
         ))),
         ident("log_format").with(raw()).and(many::<Vec<_>, _>(
-            (position(), string()).and_then(|(pos, s)| {
+            (position(), string()).and_then(|(_, s)| {
                 if true{
                     Ok(s.to_string())
                 } else{
@@ -336,6 +378,13 @@ pub fn top_level<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
                 }
 
             }))).skip(semi()).map(|s|LogFormat { name: s.0, style: s.1 }).map(Item::LogFormat),
+        simple_option("charset"),
+        simple_option("server_names_hash_bucket_size"),
+        simple_option("proxy_cache_path"),
+        simple_option("client_header_buffer_size"),
+        simple_option("large_client_header_buffers"),
+        simple_option("map_hash_bucket_size"),
+        simple_option("tcp_nopush"),
         ident("stream").with(block()).map(|(position, directives)| ast::Stream { position, directives }).map(Item::Stream),
         ident("client_max_body_size").with(value()).skip(semi())
             .map(Item::ClientMaxBodySize),
@@ -347,11 +396,27 @@ pub fn top_level<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
     ))
 }
 
+#[inline]
+fn simple_option<'a>(directive_name: &'static str ) -> impl Parser<Output=Item, Input=TokenStream<'a>>{
+    ident(directive_name).and(many::<Vec<_>, _>(
+            (position(), string()).and_then(|(_, s)| {
+                if true{
+                    Ok(s.to_string())
+                } else{
+                    Err(Error::unexpected_message(
+                        format!("bad param {:?}", s.value)))
+                }
+
+            }))).skip(semi()).map(move |s|SimpleOption { name: directive_name, values: s.1 }).map(Item::SimpleOption)
+}
+
 pub fn directive<'a>() -> impl Parser<Output=Directive, Input=TokenStream<'a>>
 {
     position()
     .and(choice((
         top_level(),
+        simple_opts(),
+        proxy_opts(),
         rewrite::directives(),
         try_files(),
         upstream(),
