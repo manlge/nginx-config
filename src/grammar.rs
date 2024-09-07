@@ -330,6 +330,9 @@ pub fn simple_opts<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
         simple_option("stub_status"),
         simple_option("vhost_traffic_status_display"),
         simple_option("check_status"),
+        simple_option("check"),
+        simple_option("check_http_send"),
+        simple_option("check_http_expect_alive"),
     ))
 }
 pub fn top_level<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
