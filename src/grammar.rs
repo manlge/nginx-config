@@ -403,14 +403,8 @@ pub fn top_level<'a>() -> impl Parser<Output=Item, Input=TokenStream<'a>> {
 fn simple_option<'a>(directive_name: &'static str ) -> impl Parser<Output=Item, Input=TokenStream<'a>>{
     ident(directive_name).and(many::<Vec<_>, _>(
             (position(), string()).and_then(|(_, s)| {
-                if true{
-                    Ok(s.to_string())
-                } else{
-                    Err(Error::unexpected_message(
-                        format!("bad param {:?}", s.value)))
-                }
-
-            }))).skip(semi()).map(move |s|SimpleOption { name: directive_name, values: s.1 }).map(Item::SimpleOption)
+                Result::Ok::<String, Error<Token<'_>,Token<'_>>>(s.to_string())
+            }))).skip(semi()).map(move |s|SimpleOption { name: directive_name, options: s.1 }).map(Item::SimpleOption)
 }
 
 pub fn directive<'a>() -> impl Parser<Output=Directive, Input=TokenStream<'a>>

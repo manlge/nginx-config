@@ -56,7 +56,7 @@ pub struct LogFormat {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SimpleOption {
     pub name: &'static str,
-    pub values: Vec<String>,
+    pub options: Vec<String>,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Upstream {

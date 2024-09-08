@@ -128,7 +128,7 @@ impl Displayable for ast::Item {
                 f.indent();
                 f.write(&o.name);
 
-                for s in o.values.iter() {
+                for s in o.options.iter() {
                     f.write(" ");
                     f.write(s);
                 }
